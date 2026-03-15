@@ -1,4 +1,4 @@
-# --- DAY 4: FUNCTIONS AS TOOLS ---
+# --- DAY 4: FUNCTIONS AS TOOLS Reusable---
 
 # 1. A tool to create a URL slug (e.g., "My Post" -> "my-post")
 def create_slug(title):
