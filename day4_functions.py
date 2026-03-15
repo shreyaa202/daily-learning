@@ -1,24 +1,32 @@
-# --- DAY 4: FUNCTIONS (REUSABLE COMPONENTS) ---
-# 1. Defining the Function
-# 'current' and 'multiplier' are called arguments (inputs)
-def calculate_hike(current_salary, multiplier):
-    new_salary = current_salary * multiplier
-    return new_salary
+# --- DAY 4: FUNCTIONS AS TOOLS ---
 
-# 2. Using the Function (Calling it)
-shreya_current = 3.0
-shreya_new = calculate_hike(shreya_current, 2.5)
+# 1. A tool to create a URL slug (e.g., "My Post" -> "my-post")
+def create_slug(title):
+    # .strip() removes outer spaces, .lower() makes it lowercase, 
+    # .replace() swaps spaces for dashes
+    slug = title.strip().lower().replace(" ", "-")
+    return slug
 
-print(f"Current Salary: {shreya_current} LPA")
-print(f"Projected AI Engineer Salary: {shreya_new} LPA")
-
-# 3. Another Function for AI Checks
-def is_ai_ready(skill_list):
-    if len(skill_list) >= 5:
-        return "🔥 Ready to apply for Junior AI roles!"
+# 2. A tool to check if a website image is too heavy
+def check_image_size(kb_size):
+    max_limit = 500  # 500kb limit for fast loading
+    if kb_size > max_limit:
+        return "⚠️ Warning: Image is too large! Compress it."
     else:
-        return f"📚 Need {5 - len(skill_list)} more skills to be job-ready."
+        return "✅ Perfect: Image is SEO friendly."
 
-# 4. Testing the second function
-my_skills = ["Python", "Webflow", "Git", "API"]
-print(f"Status Check: {is_ai_ready(my_skills)}")
+# --- TESTING OUR TOOLS ---
+
+# Test 1: Creating a slug for a new Webflow page
+page_title = "   How to Build AI Apps   "
+new_url = create_slug(page_title)
+print(f"Original: {page_title}")
+print(f"URL Slug: www.mysite.com/{new_url}")
+
+# Test 2: Checking a heavy hero image
+hero_image_size = 1200 # 1.2MB
+print(f"\nImage Scan: {check_image_size(hero_image_size)}")
+
+# Test 3: Checking a small icon
+icon_size = 45 # 45kb
+print(f"Icon Scan: {check_image_size(icon_size)}")
