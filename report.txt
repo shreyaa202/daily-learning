@@ -1,0 +1,2 @@
+Day 8 Task: Completed
+Status: I can now read and write files!
