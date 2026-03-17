@@ -6,21 +6,21 @@ from huggingface_hub import InferenceClient
 load_dotenv()
 token = os.getenv("HF_TOKEN")
 
-# The Client automatically handles the URL and routing for you
+# The Client handles the heavy lifting
 client = InferenceClient(api_key=token)
 
-print("--- 🚀 Connecting via Official HF Client... ---")
+print("--- 🚀 Connecting via Llama-3 (2026 Stable)... ---")
 
 try:
-    # 2. Make the call using the 'chat_completion' method
-    # This is the 2026 standard for talking to text models
+    # 2. Swapping the model to Llama-3-8B-Instruct
+    # This model has the highest availability in 2026
     response = client.chat_completion(
-        model="mistralai/Mistral-7B-Instruct-v0.2",
-        messages=[{"role": "user", "content": "Give me a one-sentence tip for a Webflow developer."}],
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        messages=[{"role": "user", "content": "Give me a one-sentence tip for a Webflow developer learning Python."}],
         max_tokens=100
     )
 
-    # 3. Access the result (Professional JSON parsing)
+    # 3. Accessing the result
     answer = response.choices[0].message.content
     print(f"\nAI Response: {answer}")
 
