@@ -1,6 +1,8 @@
 # Webflow AI Content Manager
 # A Streamlit app that connects to Hugging Face's Qwen-72B model to generate AI-optimized taglines for products in a Webflow export CSV. Users can select a brand vibe, upload their CSV, and get AI-generated content with insights.   
 # for day 22 to day 27
+    # st.balloons() # This adds a celebratory animation on the screen
+
 import streamlit as st
 import pandas as pd
 import os
@@ -10,11 +12,15 @@ from huggingface_hub import InferenceClient
 
 # --- 1. SETUP & AI BRAIN ---
 load_dotenv()
-client = InferenceClient(api_key=os.getenv("HF_TOKEN"))
+# Note: In Streamlit Cloud, it will look in "Secrets". Locally, it looks in ".env"
+token = os.getenv("HF_TOKEN")
+client = InferenceClient(api_key=token)
 
 def get_ai_tagline(product, vibe):
-    prompt = f"Role: {vibe} Copywriter. Task: 5-word tagline for {product}. No quotes."
+    """The AI engine that powers your brand voices."""
+    prompt = f"Role: {vibe} Copywriter. Task: Write a 5-word catchy tagline for {product}. No quotes, just the text."
     try:
+        # Using Qwen 2.5 for maximum reliability in 2026
         response = client.chat_completion(
             model="Qwen/Qwen2.5-72B-Instruct",
             messages=[{"role": "user", "content": prompt}],
@@ -22,7 +28,7 @@ def get_ai_tagline(product, vibe):
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        return "AI is resting... try again!"
+        return "AI Server busy. Please retry."
 
 # --- 2. SECURITY LOGIC ---
 def password_entered():
@@ -43,55 +49,84 @@ def check_password():
     return True
 
 # --- 3. THE APP INTERFACE ---
-st.set_page_config(page_title="Secure Webflow AI", page_icon="🔐")
+st.set_page_config(page_title="Webflow AI CMS Pro", page_icon="🚀", layout="wide")
 
 if check_password():
-    # EVERYTHING BELOW ONLY SHOWS AFTER LOGIN
+    # SIDEBAR SETUP
     st.sidebar.success("🔓 Access Granted")
-    st.title("🤖 Webflow AI Content Manager")
-    
     with st.sidebar:
         st.header("Settings")
-        brand_vibe = st.selectbox("Select Brand Voice", ["Luxury", "Gen-Z", "Professional"])
+        brand_vibe = st.selectbox("Select Brand Voice", ["Luxury", "Gen-Z", "Professional", "Minimalist"])
+        st.divider()
+        st.markdown("### 👩‍💻 Developed by Shreya")
+        st.info("AI Automation Expert for Webflow")
+        st.write("[LinkedIn](https://linkedin.com/in/shreya) | [GitHub](https://github.com/shreyaa202)")
 
-    uploaded_file = st.file_uploader("Upload your Webflow Export (CSV)", type="csv")
+    # MAIN HEADER
+    st.title("🤖 Webflow AI Content Manager")
+    
+    with st.expander("📖 User Guide"):
+        st.write("""
+        1. **Upload:** Drop your Webflow CSV export here.
+        2. **Validate:** The app ensures 'Item_Name' and 'Category' exist.
+        3. **Generate:** AI creates unique taglines for every row.
+        4. **Export:** Download and import back into Webflow.
+        """)
+
+    uploaded_file = st.file_uploader("Step 1: Upload your Webflow Export (CSV)", type="csv")
 
     if uploaded_file:
+        # DATA LOADING
         df = pd.read_csv(uploaded_file)
-        st.write("### 📊 Preview Data")
+        
+        # VALIDATION (Day 28 Fix)
+        required_columns = ['Item_Name', 'Category']
+        if not all(col in df.columns for col in required_columns):
+            st.error(f"❌ Missing Columns! Your CSV must have: {', '.join(required_columns)}")
+            st.stop()
+
+        st.write("### 📊 Raw Data Preview")
         st.dataframe(df.head())
 
-        if st.button("✨ Generate AI Content"):
-            with st.status("AI is working...", expanded=True) as status:
-                df['AI_Tagline'] = df['Item_Name'].apply(lambda x: get_ai_tagline(x, brand_vibe))
-                status.update(label="✅ Content Generated!", state="complete", expanded=False)
+        # PROCESSING BUTTON
+        if st.button("✨ Step 2: Generate AI Content"):
+            with st.status("AI is processing your products...", expanded=True) as status:
+                # Apply AI with a tiny delay to respect rate limits
+                def process_row(name):
+                    time.sleep(1) # Safety pause
+                    return get_ai_tagline(name, brand_vibe)
+                
+                df['AI_Tagline'] = df['Item_Name'].apply(process_row)
+                status.update(label="✅ Content Generated Successfully!", state="complete", expanded=False)
+            
+            st.balloons() # Day 27 Celebration
 
+            # DISPLAY RESULTS
             st.write("### 🏆 AI Optimized Results")
             st.dataframe(df)
 
-            # Download Button
+            # DOWNLOAD SECTION
             csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button("📂 Download for Webflow", csv, "ai_export.csv", "text/csv")
+            st.download_button(
+                label="📥 Step 3: Download for Webflow",
+                data=csv,
+                file_name="webflow_ready_export.csv",
+                mime="text/csv",
+            )
 
-            # --- DATA VISUALIZATION SECTION ---
+            # ANALYTICS SECTION (Day 24)
             st.divider()
-            st.write("### 📈 Inventory Insights")
+            st.write("### 📈 Inventory & Price Insights")
             col1, col2 = st.columns(2)
             with col1:
+                st.write("#### Stock by Product")
                 st.bar_chart(data=df, x="Item_Name", y="Inventory")
             with col2:
+                st.write("#### Price Distribution")
                 st.line_chart(data=df, x="Item_Name", y="Price")
 
 else:
-    st.title("🔐 Access Restricted")
-    st.info("Please enter the Admin Key in the sidebar to unlock the AI Pipeline.")
-    # --- Day 27: UI Polish ---
-with st.expander("📖 How to use this tool"):
-    st.write("""
-    1. **Login:** Enter the Admin Key in the sidebar.
-    2. **Upload:** Drop your Webflow CSV export into the uploader.
-    3. **Select Vibe:** Choose a brand voice that matches your site.
-    4. **Generate:** Click the button and wait for the AI to finish.
-    5. **Download:** Export your AI-optimized CSV and import it back to Webflow!
-    """)
-    # st.balloons() # This adds a celebratory animation on the screen
+    # LANDING PAGE (LOCKED)
+    st.title("🔐 AI Manager Locked")
+    st.info("Please enter your Admin Access Key in the sidebar to begin processing data.")
+    st.image("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80", caption="Security Active")
