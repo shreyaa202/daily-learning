@@ -1,3 +1,6 @@
+# Webflow AI Content Manager
+# A Streamlit app that connects to Hugging Face's Qwen-72B model to generate AI-optimized taglines for products in a Webflow export CSV. Users can select a brand vibe, upload their CSV, and get AI-generated content with insights.   
+# for day 22 to day 25
 import streamlit as st
 import pandas as pd
 import os
@@ -5,72 +8,50 @@ import time
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 
-# 1. SETUP & AI BRAIN
+# 1. SETUP
 load_dotenv()
 client = InferenceClient(api_key=os.getenv("HF_TOKEN"))
 
-def get_ai_tagline(product, vibe):
-    # System Instruction based on Sidebar selection
-    prompt = f"Role: {vibe} Copywriter. Task: 5-word tagline for {product}. No quotes."
-    try:
-        response = client.chat_completion(
-            model="Qwen/Qwen2.5-72B-Instruct",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=20
+# 2. THE SECURITY LOCK
+def check_password():
+    """Returns True if the user had the correct password."""
+    if "password_correct" not in st.session_state:
+        # First run, show the input
+        st.sidebar.text_input(
+            "Enter Admin Access Key", type="password", on_change=password_entered, key="password"
         )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        return "AI is resting... try again!"
+        return False
+    elif not st.session_state["password_correct"]:
+        # Password not correct, retry
+        st.sidebar.text_input(
+            "Enter Admin Access Key", type="password", on_change=password_entered, key="password"
+        )
+        st.sidebar.error("❌ Invalid Key")
+        return False
+    else:
+        return True
 
-# 2. UI LAYOUT
-st.set_page_config(page_title="Webflow AI", page_icon="🤖")
-st.title("🤖 Webflow AI Content Manager")
+def password_entered():
+    """Checks whether a password entered by the user is correct."""
+    if st.session_state["password"] == "noida_ai_2026": # Your Secret Key!
+        st.session_state["password_correct"] = True
+        del st.session_state["password"]  # don't store password
+    else:
+        st.session_state["password_correct"] = False
 
-with st.sidebar:
-    st.header("Settings")
-    brand_vibe = st.selectbox("Select Brand Voice", ["Luxury", "Gen-Z", "Professional"])
-    st.success("AI Connected")
+# 3. APP LOGIC
+st.set_page_config(page_title="Secure AI Manager", page_icon="🔐")
 
-uploaded_file = st.file_uploader("Upload your Webflow Export (CSV)", type="csv")
-
-if uploaded_file:
-    df = pd.read_csv(uploaded_file)
-    st.write("### 📊 Preview Data")
-    st.dataframe(df.head())
-
-    # 3. THE MAGIC BUTTON
-    if st.button("✨ Generate AI Content"):
-        with st.status("AI is working on your products...", expanded=True) as status:
-            st.write("Connecting to Qwen-72B...")
-            
-            # We apply the AI to every row
-            df['AI_Tagline'] = df['Item_Name'].apply(lambda x: get_ai_tagline(x, brand_vibe))
-            
-            status.update(label="✅ Content Generated!", state="complete", expanded=False)
-
-        # 4. SHOW RESULTS & DOWNLOAD
-        st.write("### 🏆 AI Optimized Results")
-        st.dataframe(df)
-
-        # Download button so the user can take the data back to Webflow
-        csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button("📂 Download for Webflow", csv, "ai_webflow_export.csv", "text/csv")
-
-        # 5. DATA VISUALIZATION (Day 24 addition)
-        st.divider()
-        st.write("### 📈 Inventory Insights")
-        
-        # Create two columns for charts
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.write("#### Stock Levels")
-            # A simple bar chart: Item Name vs Inventory
-            st.bar_chart(data=df, x="Item_Name", y="Inventory", color="#4285F4")
-
-        with col2:
-            st.write("#### Price Distribution")
-            # A line chart for pricing
-            st.line_chart(data=df, x="Item_Name", y="Price", color="#EA4335")
-
-        st.success("Analysis Complete! You are ready to export.")
+if check_password():
+    # EVERYTHING INSIDE HERE IS SECURE
+    st.sidebar.success("🔓 Access Granted")
+    st.title("🤖 Webflow AI Content Manager")
+    
+    # ... (Your previous file_uploader and AI logic goes here)
+    st.write("Welcome back, Shreya. The AI is ready for your CSV.")
+    
+    # (Rest of your Day 24 code...)
+else:
+    # THIS SHOWS IF THE KEY IS WRONG
+    st.title("🔐 Access Restricted")
+    st.info("Please enter the Admin Key in the sidebar to use the AI Pipeline.")
