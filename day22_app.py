@@ -1,6 +1,6 @@
 # Webflow AI Content Manager
 # A Streamlit app that connects to Hugging Face's Qwen-72B model to generate AI-optimized taglines for products in a Webflow export CSV. Users can select a brand vibe, upload their CSV, and get AI-generated content with insights.   
-# for day 22 to day 25
+# for day 22 to day 27
 import streamlit as st
 import pandas as pd
 import os
@@ -85,3 +85,13 @@ if check_password():
 else:
     st.title("🔐 Access Restricted")
     st.info("Please enter the Admin Key in the sidebar to unlock the AI Pipeline.")
+    # --- Day 27: UI Polish ---
+with st.expander("📖 How to use this tool"):
+    st.write("""
+    1. **Login:** Enter the Admin Key in the sidebar.
+    2. **Upload:** Drop your Webflow CSV export into the uploader.
+    3. **Select Vibe:** Choose a brand voice that matches your site.
+    4. **Generate:** Click the button and wait for the AI to finish.
+    5. **Download:** Export your AI-optimized CSV and import it back to Webflow!
+    """)
+    # st.balloons() # This adds a celebratory animation on the screen
