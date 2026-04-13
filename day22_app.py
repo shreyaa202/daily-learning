@@ -1,7 +1,7 @@
 # Webflow AI Content Manager
 # A Streamlit app that connects to Hugging Face's Qwen-72B model to generate AI-optimized taglines for products in a Webflow export CSV. Users can select a brand vibe, upload their CSV, and get AI-generated content with insights.   
 # for day 22 to day 30 of the 30-day AI challenge.
-    # st.balloons() # This adds a celebratory animation on the screen
+# st.balloons() # This adds a celebratory animation on the screen
 
 import streamlit as st
 import pandas as pd
@@ -10,123 +10,119 @@ import time
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 
-# --- 1. SETUP & AI BRAIN ---
+# --- 1. SETUP & AI ENGINE ---
 load_dotenv()
-# Note: In Streamlit Cloud, it will look in "Secrets". Locally, it looks in ".env"
 token = os.getenv("HF_TOKEN")
 client = InferenceClient(api_key=token)
 
-def get_ai_tagline(product, vibe):
-    """The AI engine that powers your brand voices."""
-    prompt = f"Role: {vibe} Copywriter. Task: Write a 5-word catchy tagline for {product}. No quotes, just the text."
+def get_ai_seo_content(item_name, category, mode):
+    """Advanced AI Generator for SEO Metadata."""
+    if mode == "Tagline":
+        prompt = f"Role: Marketing Expert. Task: Write a 5-word catchy tagline for a {category} called '{item_name}'. No quotes."
+    else:
+        prompt = f"Role: SEO Specialist. Task: Write a 150-character meta description for a {category} product: '{item_name}'. Focus on high-conversion keywords."
+    
     try:
-        # Using Qwen 2.5 for maximum reliability in 2026
         response = client.chat_completion(
             model="Qwen/Qwen2.5-72B-Instruct",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=20
+            max_tokens=40
         )
         return response.choices[0].message.content.strip()
-    except Exception as e:
-        return "AI Server busy. Please retry."
+    except Exception:
+        return "Content pending... system busy."
 
-# --- 2. SECURITY LOGIC ---
-def password_entered():
-    if st.session_state["password"] == "noida_ai_2026":
-        st.session_state["password_correct"] = True
-        del st.session_state["password"] 
-    else:
-        st.session_state["password_correct"] = False
-
+# --- 2. SECURITY LAYER ---
 def check_password():
-    if "password_correct" not in st.session_state:
-        st.sidebar.text_input("Enter Admin Access Key", type="password", on_change=password_entered, key="password")
-        return False
-    elif not st.session_state["password_correct"]:
-        st.sidebar.text_input("Enter Admin Access Key", type="password", on_change=password_entered, key="password")
-        st.sidebar.error("❌ Invalid Key")
-        return False
-    return True
+    def password_entered():
+        if st.session_state["password"] == "noida_ai_2026":
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]
+        else:
+            st.session_state["password_correct"] = False
 
-# --- 3. THE APP INTERFACE ---
-st.set_page_config(page_title="Webflow AI CMS Pro", page_icon="🚀", layout="wide")
+    if "password_correct" not in st.session_state:
+        st.sidebar.text_input("Admin Access Key", type="password", on_change=password_entered, key="password")
+        return False
+    return st.session_state["password_correct"]
+
+# --- 3. THE PROFESSIONAL DASHBOARD ---
+st.set_page_config(page_title="AI-SEO Automation Pro", page_icon="📈", layout="wide")
 
 if check_password():
-    # SIDEBAR SETUP
-    st.sidebar.success("🔓 Access Granted")
+    st.sidebar.success("🔓 Authorized Session")
     with st.sidebar:
-        st.header("Settings")
-        brand_vibe = st.selectbox("Select Brand Voice", ["Luxury", "Gen-Z", "Professional", "Minimalist"])
+        st.header("⚙️ Control Panel")
+        brand_vibe = st.selectbox("Brand Voice", ["Luxury", "Gen-Z", "Professional", "Minimalist"])
+        output_type = st.radio("Output Type", ["Tagline", "SEO Meta Description"])
         st.divider()
-        st.markdown("### 👩‍💻 Developed by Shreya")
-        st.info("AI Automation Expert for Webflow")
-        st.write("[LinkedIn](https://linkedin.com/in/shreya) | [GitHub](https://github.com/shreyaa202)")
+        st.info("Developed by Shreya Tripathi | Webflow AI Engineer")
 
-    # MAIN HEADER
-    st.title("🤖 Webflow AI Content Manager")
-    
-    with st.expander("📖 User Guide"):
-        st.write("""
-        1. **Upload:** Drop your Webflow CSV export here.
-        2. **Validate:** The app ensures 'Item_Name' and 'Category' exist.
-        3. **Generate:** AI creates unique taglines for every row.
-        4. **Export:** Download and import back into Webflow.
-        """)
+    st.title("🚀 Professional AI-SEO Optimizer")
+    st.markdown("#### Automating Webflow CMS workflows with Large Language Models")
 
-    uploaded_file = st.file_uploader("Step 1: Upload your Webflow Export (CSV)", type="csv")
+    uploaded_file = st.file_uploader("Upload Webflow Export (CSV)", type="csv")
 
     if uploaded_file:
-        # DATA LOADING
         df = pd.read_csv(uploaded_file)
         
-        # VALIDATION (Day 28 Fix)
-        required_columns = ['Item_Name', 'Category']
-        if not all(col in df.columns for col in required_columns):
-            st.error(f"❌ Missing Columns! Your CSV must have: {', '.join(required_columns)}")
+        # VALIDATION
+        if not all(col in df.columns for col in ['Item_Name', 'Category']):
+            st.error("❌ Missing required columns: 'Item_Name' and 'Category'")
             st.stop()
 
-        st.write("### 📊 Raw Data Preview")
-        st.dataframe(df.head())
+        # --- RESUME FEATURE: BUSINESS METRICS ---
+        st.divider()
+        m_col1, m_col2, m_col3 = st.columns(3)
+        with m_col1:
+            st.metric("Total Items", len(df))
+        with m_col2:
+            hours_saved = round((len(df) * 5) / 60, 1) # Assuming 5 mins/item manual work
+            st.metric("Manual Hours Saved", f"{hours_saved} hrs")
+        with m_col3:
+            # Assuming a content writer charges $30/hr
+            savings = round(hours_saved * 30, 2)
+            st.metric("Estimated Agency Savings", f"${savings}")
+        st.divider()
 
-        # PROCESSING BUTTON
-        if st.button("✨ Step 2: Generate AI Content"):
-            with st.status("AI is processing your products...", expanded=True) as status:
-                # Apply AI with a tiny delay to respect rate limits
-                def process_row(name):
-                    time.sleep(1) # Safety pause
-                    return get_ai_tagline(name, brand_vibe)
+        st.write("### 📂 Data Preview")
+        st.dataframe(df.head(), use_container_width=True)
+
+        if st.button("⚡ Start Bulk Optimization"):
+            with st.status("AI Engine warming up...", expanded=True) as status:
+                st.write("Connecting to Qwen-72B Inference Node...")
                 
-                df['AI_Tagline'] = df['Item_Name'].apply(process_row)
-                status.update(label="✅ Content Generated Successfully!", state="complete", expanded=False)
+                # Processing with a progress bar
+                results = []
+                progress_bar = st.progress(0)
+                for i, row in df.iterrows():
+                    res = get_ai_seo_content(row['Item_Name'], row['Category'], output_type)
+                    results.append(res)
+                    progress_bar.progress((i + 1) / len(df))
+                    time.sleep(0.5) # Safety delay
+                
+                df['AI_Optimized_Content'] = results
+                status.update(label="✅ Optimization Complete!", state="complete")
             
-            st.balloons() # Day 27 Celebration
+            st.balloons()
+            st.write("### 🏆 Final Results")
+            st.dataframe(df, use_container_width=True)
 
-            # DISPLAY RESULTS
-            st.write("### 🏆 AI Optimized Results")
-            st.dataframe(df)
-
-            # DOWNLOAD SECTION
+            # PROFESSIONAL EXPORT
             csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="📥 Step 3: Download for Webflow",
-                data=csv,
-                file_name="webflow_ready_export.csv",
-                mime="text/csv",
-            )
+            st.download_button("📥 Download Webflow-Ready CSV", csv, "seo_optimized_export.csv", "text/csv")
 
-            # ANALYTICS SECTION (Day 24)
+            # VISUAL ANALYTICS
             st.divider()
-            st.write("### 📈 Inventory & Price Insights")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("#### Stock by Product")
-                st.bar_chart(data=df, x="Item_Name", y="Inventory")
-            with col2:
-                st.write("#### Price Distribution")
-                st.line_chart(data=df, x="Item_Name", y="Price")
+            st.write("### 📊 Dataset Distribution")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.write("#### Category Breakdown")
+                st.bar_chart(df['Category'].value_counts())
+            with c2:
+                st.write("#### Inventory Priority")
+                st.line_chart(df.set_index('Item_Name')['Inventory'])
 
 else:
-    # LANDING PAGE (LOCKED)
-    st.title("🔐 AI Manager Locked")
-    st.info("Please enter your Admin Access Key in the sidebar to begin processing data.")
-    st.image("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80", caption="Security Active")
+    st.title("🔐 Enterprise Portal Locked")
+    st.info("Please enter the Admin Key to access the Bulk SEO Automation Pipeline.")
