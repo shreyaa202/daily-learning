@@ -1,6 +1,6 @@
 # Webflow AI Content Manager
 # A Streamlit app that connects to Hugging Face's Qwen-72B model to generate AI-optimized taglines for products in a Webflow export CSV. Users can select a brand vibe, upload their CSV, and get AI-generated content with insights.   
-# for day 22 to day 27
+# for day 22 to day 30 of the 30-day AI challenge.
     # st.balloons() # This adds a celebratory animation on the screen
 
 import streamlit as st
